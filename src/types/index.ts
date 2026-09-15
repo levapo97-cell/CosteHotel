@@ -48,7 +48,7 @@ export interface CostAnalysis {
 export const ROLE_MENU_MAP: Record<UserRole, MenuItem[]> = {
   admin: [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
-    { id: 'costeo', label: 'Costeo', href: '/costeo', icon: 'TrendingUp' },
+    { id: 'costeo', label: 'Costeo', href: '/costeo', icon: 'DollarSign' },
     { id: 'eventos', label: 'Eventos', href: '/eventos', icon: 'Calendar' },
     { id: 'reservas', label: 'Reservas', href: '/reservas', icon: 'BookOpen' },
     { id: 'pagos', label: 'Pagos', href: '/pagos', icon: 'CreditCard' },
@@ -66,7 +66,7 @@ export const ROLE_MENU_MAP: Record<UserRole, MenuItem[]> = {
   ],
   manager: [
     { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
-    { id: 'costeo', label: 'Costeo', href: '/costeo', icon: 'TrendingUp' },
+    { id: 'costeo', label: 'Costeo', href: '/costeo', icon: 'DollarSign' },
     { id: 'eventos', label: 'Eventos', href: '/eventos', icon: 'Calendar' },
     { id: 'reservas', label: 'Reservas', href: '/reservas', icon: 'BookOpen' },
     { id: 'pagos', label: 'Pagos', href: '/pagos', icon: 'CreditCard' },
