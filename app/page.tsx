@@ -25,81 +25,63 @@ export default function Home() {
     }
   };
 
-  const getRoleGradient = (role: UserRole) => {
-    const gradients = {
-      admin: 'from-orange-500 to-red-600',
-      chef: 'from-amber-500 to-orange-600',
-      manager: 'from-emerald-500 to-teal-600',
-    };
-    return gradients[role];
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative z-10 w-full max-w-2xl">
-        {/* Logo & Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 shadow-2xl mb-6">
-            <span className="text-4xl">🍽️</span>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-blue-600 mb-4">
+            <span className="text-3xl">🍽️</span>
           </div>
-          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-300 mb-2">
-            RestaurantApp
-          </h1>
-          <p className="text-slate-400 text-lg">Sistema de Gestión para Restaurantes</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">RestaurantApp</h1>
+          <p className="text-gray-600">Selecciona tu rol para acceder</p>
         </div>
 
         {/* Login Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="space-y-3 mb-6">
           {DEMO_USERS.map((user) => (
             <button
               key={user.role}
               onClick={() => handleLogin(user.role)}
-              className={`group relative p-6 rounded-2xl transition-all duration-300 overflow-hidden
-                ${
-                  selectedRole === user.role
-                    ? `bg-gradient-to-br ${getRoleGradient(user.role)} shadow-2xl transform scale-105`
-                    : 'bg-slate-800/50 hover:bg-slate-800/80 border border-slate-700/50 hover:border-slate-600'
-                }`}
+              className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                selectedRole === user.role
+                  ? 'bg-blue-50 border-blue-600 shadow-md'
+                  : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm'
+              }`}
             >
-              {/* Gradient overlay on hover */}
-              {selectedRole !== user.role && (
-                <div className={`absolute inset-0 bg-gradient-to-br ${getRoleGradient(user.role)} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-              )}
-
-              <div className="relative z-10">
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center font-bold text-lg mb-4 ${
-                  selectedRole === user.role
-                    ? 'bg-white/20 text-white'
-                    : `bg-gradient-to-br ${getRoleGradient(user.role)} text-white`
-                }`}>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0">
                   {user.name.charAt(0)}
                 </div>
-                <p className={`font-bold text-lg mb-1 ${selectedRole === user.role ? 'text-white' : 'text-slate-100'}`}>
-                  {user.name}
-                </p>
-                <p className={`text-sm mb-4 ${selectedRole === user.role ? 'text-white/80' : 'text-slate-400'}`}>
-                  {user.role === 'admin' && 'Acceso Total'}
-                  {user.role === 'chef' && 'Gestión de Platos'}
-                  {user.role === 'manager' && 'Operaciones'}
-                </p>
-                <p className={`text-xs ${selectedRole === user.role ? 'text-white/60' : 'text-slate-500'}`}>
-                  {user.email}
-                </p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900">{user.name}</p>
+                  <p className="text-sm text-gray-600">{user.email}</p>
+                  <p className="text-xs text-gray-500 capitalize mt-1">
+                    {user.role === 'admin' && 'Acceso total al sistema'}
+                    {user.role === 'chef' && 'Gestión de platos e inventario'}
+                    {user.role === 'manager' && 'Gestión de operaciones'}
+                  </p>
+                </div>
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                  selectedRole === user.role
+                    ? 'border-blue-600 bg-blue-600'
+                    : 'border-gray-300'
+                }`}>
+                  {selectedRole === user.role && (
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
               </div>
             </button>
           ))}
         </div>
 
         {/* Info Box */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 backdrop-blur-sm">
-          <p className="text-sm text-slate-300">
-            <span className="font-semibold text-slate-100">💡 Demo:</span> Selecciona tu rol para acceder al sistema. Cada rol tiene acceso a diferentes módulos y funcionalidades.
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-gray-700">
+            <span className="font-semibold text-blue-900">💡 Modo demostración:</span> Elige un rol para ver el sistema. Cada rol accede a diferentes funciones.
           </p>
         </div>
       </div>
