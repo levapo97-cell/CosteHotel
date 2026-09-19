@@ -14,13 +14,41 @@ export interface MenuItem {
   icon: string;
 }
 
-export interface Ingredient {
+// Cada hotel tiene restaurante y bar; cada área compra, guarda stock y costea por separado.
+export type Area = 'restaurant' | 'bar';
+
+export interface Hotel {
   id: string;
   name: string;
-  unitType: 'kg' | 'l' | 'unit' | 'g' | 'ml';
-  costPerUnit: number;
+}
+
+export type UnitType = 'kg' | 'l' | 'unit' | 'g' | 'ml';
+
+export interface Ingredient {
+  id: string;
+  hotelId: string;
+  area: Area;
+  name: string;
+  unitType: UnitType;
+  costPerUnit: number; // costo promedio ponderado de las compras
   currentStock: number;
+  minStock: number;
   lastUpdated: string;
+}
+
+// compra y ajuste pueden subir el stock; consumo y merma lo bajan.
+export type MovementType = 'purchase' | 'consumption' | 'waste' | 'adjustment';
+
+export interface StockMovement {
+  id: string;
+  ingredientId: string;
+  type: MovementType;
+  quantity: number; // con signo: positivo entra, negativo sale
+  unitCost: number; // costo unitario al momento del movimiento
+  stockAfter: number;
+  date: string; // ISO
+  note?: string;
+  userName: string;
 }
 
 export interface DishIngredient {
@@ -30,6 +58,8 @@ export interface DishIngredient {
 
 export interface Dish {
   id: string;
+  hotelId: string;
+  area: Area;
   name: string;
   sellingPrice: number;
   ingredients: DishIngredient[];

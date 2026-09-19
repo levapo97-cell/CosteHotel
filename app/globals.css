@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
+/* La app solo tiene paleta clara: `color-scheme` evita que el modo oscuro del sistema
+   cambie el texto de los inputs o los controles nativos (selects, spinners). */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -12,11 +15,15 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Sin flechas en los campos numéricos: se encimaban con la unidad (kg, l) en campos angostos. */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
 }
 
 body {

@@ -1,12 +1,17 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { MainLayout } from '@/components/Layout/MainLayout';
 import { PageHeader } from '@/components/Layout/PageHeader';
+import { WorkspaceSwitcher } from '@/components/Workspace/WorkspaceSwitcher';
 import { useAuthStore } from '@/store/authStore';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { DishesView } from '@/components/Platos/DishesView';
+import { useWorkspaceStore } from '@/store/workspaceStore';
+import { AREA_COPY } from '@/lib/inventory';
 
 export default function PlatosPage() {
+  const area = useWorkspaceStore((state) => state.area);
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
 
@@ -18,16 +23,12 @@ export default function PlatosPage() {
 
   return (
     <MainLayout>
-      <PageHeader title="Platos" description="Crea y gestiona los platos del menú" />
-      <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-slate-600">Rol actual: <span className="font-semibold capitalize">{user.role}</span></p>
-        <div className="mt-4 p-4 bg-slate-50 rounded">
-          <p className="text-sm text-slate-600">📋 Funcionalidades previstas:</p>
-          <ul className="text-sm text-slate-600 list-disc list-inside mt-2 space-y-1">
-            <li>Especificar ingredientes y cantidades para cada plato</li>
-          </ul>
-        </div>
-      </div>
+      <PageHeader
+        title={AREA_COPY[area].recipes}
+        description="Recetas con sus productos y cantidades. El costo se actualiza con cada compra."
+        actions={<WorkspaceSwitcher />}
+      />
+      <DishesView />
     </MainLayout>
   );
 }

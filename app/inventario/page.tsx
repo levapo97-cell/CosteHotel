@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { MainLayout } from '@/components/Layout/MainLayout';
 import { PageHeader } from '@/components/Layout/PageHeader';
+import { WorkspaceSwitcher } from '@/components/Workspace/WorkspaceSwitcher';
 import { useAuthStore } from '@/store/authStore';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { InventoryView } from '@/components/Inventario/InventoryView';
 
 export default function InventarioPage() {
   const user = useAuthStore((state) => state.user);
@@ -18,16 +20,12 @@ export default function InventarioPage() {
 
   return (
     <MainLayout>
-      <PageHeader title="Inventario" description="Gestiona el inventario de ingredientes" />
-      <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-slate-600">Rol actual: <span className="font-semibold capitalize">{user.role}</span></p>
-        <div className="mt-4 p-4 bg-slate-50 rounded">
-          <p className="text-sm text-slate-600">📋 Funcionalidades previstas:</p>
-          <ul className="text-sm text-slate-600 list-disc list-inside mt-2 space-y-1">
-            <li>Control de precios y cantidades de ingredientes</li>
-          </ul>
-        </div>
-      </div>
+      <PageHeader
+        title="Inventario"
+        description="Stock, compras y mermas de cada área. Restaurante y bar se manejan por separado."
+        actions={<WorkspaceSwitcher />}
+      />
+      <InventoryView />
     </MainLayout>
   );
 }
