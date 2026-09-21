@@ -7,7 +7,10 @@ import { DishInput } from '@/store/inventoryStore';
 import { UNIT_LABELS, analyzeDish, formatMoney } from '@/lib/costing';
 import { AREA_COPY } from '@/lib/inventory';
 import { Field, Select, inputClass } from '@/components/ui/Form';
-import { MarginBadge } from '@/components/Costeo/shared';
+import { Badge } from '@/components/ui/Badge';
+import { buttonClass } from '@/components/ui/Button';
+import { formatPercent } from '@/components/ui/format';
+import { marginTone } from '@/components/ui/tone';
 
 // Cada fila tiene su propia `key` estable para que React no confunda filas al quitar una.
 interface Row {
@@ -113,7 +116,7 @@ export function DishForm({ formId, initial, ingredients, area, onSubmit }: DishF
       </Field>
 
       <fieldset>
-        <legend className="mb-2 block text-sm font-medium text-gray-700">Ingredientes</legend>
+        <legend className="mb-2 block text-sm font-medium text-ink">Ingredientes</legend>
         <div className="space-y-2">
           {rows.map((row, index) => {
             const unit = ingredients.find((ing) => ing.id === row.ingredientId)?.unitType;
@@ -149,7 +152,7 @@ export function DishForm({ formId, initial, ingredients, area, onSubmit }: DishF
                     className={`${inputClass()} pr-10`}
                   />
                   {unit && (
-                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-gray-400">
+                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted">
                       {UNIT_LABELS[unit]}
                     </span>
                   )}
@@ -158,7 +161,7 @@ export function DishForm({ formId, initial, ingredients, area, onSubmit }: DishF
                   type="button"
                   onClick={() => setRows((current) => current.filter((r) => r.key !== row.key))}
                   aria-label={`Quitar ingrediente ${index + 1}`}
-                  className="rounded p-2 text-red-600 transition-colors hover:bg-red-50"
+                  className={buttonClass('icon-danger')}
                 >
                   <X size={16} />
                 </button>
@@ -166,33 +169,33 @@ export function DishForm({ formId, initial, ingredients, area, onSubmit }: DishF
             );
           })}
         </div>
-        {errors.ingredients && <p className="mt-2 text-xs text-red-600">{errors.ingredients}</p>}
+        {errors.ingredients && <p className="mt-2 text-xs text-bad">{errors.ingredients}</p>}
         <button
           type="button"
           onClick={() => setRows((current) => [...current, newRow()])}
           disabled={rows.length >= ingredients.length}
-          className="mt-3 flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 disabled:cursor-not-allowed disabled:text-gray-400"
+          className="mt-3 flex items-center gap-1 text-sm font-medium text-accent-text hover:text-accent-hover disabled:cursor-not-allowed disabled:text-muted"
         >
           <Plus size={14} /> Agregar ingrediente
         </button>
       </fieldset>
 
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <p className="mb-3 text-sm font-medium text-gray-700">Vista previa del costeo</p>
+      <div className="rounded-control border border-line bg-surface p-4">
+        <p className="mb-3 text-sm font-medium text-ink">Vista previa del costeo</p>
         <dl className="grid grid-cols-3 gap-3 text-sm">
           <div>
-            <dt className="text-gray-500">Costo</dt>
-            <dd className="font-semibold text-gray-900">{formatMoney(preview.totalCost)}</dd>
+            <dt className="text-muted">Costo</dt>
+            <dd className="font-semibold text-ink">{formatMoney(preview.totalCost)}</dd>
           </div>
           <div>
-            <dt className="text-gray-500">Margen</dt>
-            <dd className={`font-semibold ${preview.margin < 0 ? 'text-red-600' : 'text-green-600'}`}>
+            <dt className="text-muted">Margen</dt>
+            <dd className={`font-semibold ${preview.margin < 0 ? 'text-bad' : 'text-ok'}`}>
               {formatMoney(preview.margin)}
             </dd>
           </div>
           <div>
-            <dt className="text-gray-500">% Margen</dt>
-            <dd>{price > 0 ? <MarginBadge percentage={preview.marginPercentage} /> : '—'}</dd>
+            <dt className="text-muted">% Margen</dt>
+            <dd>{price > 0 ? <Badge tone={marginTone(preview.marginPercentage)}>{formatPercent(preview.marginPercentage)}</Badge> : '—'}</dd>
           </div>
         </dl>
       </div>

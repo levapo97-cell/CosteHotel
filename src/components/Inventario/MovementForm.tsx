@@ -5,7 +5,7 @@ import { Ingredient, MovementType } from '@/types';
 import { MovementInput } from '@/store/inventoryStore';
 import { UNIT_LABELS, formatMoney } from '@/lib/costing';
 import { MOVEMENT_TYPES, formatQty } from '@/lib/inventory';
-import { Field, Select, inputClass } from '@/components/ui/Form';
+import { Field, Segmented, Select, inputClass } from '@/components/ui/Form';
 
 type Errors = Partial<Record<'product' | 'quantity' | 'unitCost', string>>;
 
@@ -65,26 +65,19 @@ export function MovementForm({ formId, products, initialProductId, onSubmit }: M
 
   return (
     <form id={formId} onSubmit={handleSubmit} noValidate className="space-y-5">
-      <fieldset>
-        <legend className="mb-2 block text-sm font-medium text-gray-700">Tipo de movimiento</legend>
-        <div role="radiogroup" className="grid grid-cols-4 gap-1 rounded-lg border border-gray-300 bg-gray-50 p-1">
-          {(Object.keys(MOVEMENT_TYPES) as MovementType[]).map((value) => (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={type === value}
-              onClick={() => setType(value)}
-              className={`rounded-md px-2 py-1.5 text-sm font-medium transition-colors ${
-                type === value ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {MOVEMENT_TYPES[value].label}
-            </button>
-          ))}
-        </div>
-        <p className="mt-2 text-xs text-gray-500">{MOVEMENT_TYPES[type].hint}</p>
-      </fieldset>
+      <div>
+        <p className="mb-1.5 text-[13px] font-medium text-ink">Tipo de movimiento</p>
+        <Segmented<MovementType>
+          label="Tipo de movimiento"
+          value={type}
+          onChange={setType}
+          options={(Object.keys(MOVEMENT_TYPES) as MovementType[]).map((value) => ({
+            value,
+            label: MOVEMENT_TYPES[value].label,
+          }))}
+        />
+        <p className="mt-1.5 text-xs text-muted">{MOVEMENT_TYPES[type].hint}</p>
+      </div>
 
       <Field label="Producto" htmlFor={`${id}-product`} error={errors.product}>
         <Select id={`${id}-product`} value={productId} onChange={(e) => setProductId(e.target.value)}>
@@ -145,25 +138,25 @@ export function MovementForm({ formId, products, initialProductId, onSubmit }: M
       </Field>
 
       {product && (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <p className="mb-3 text-sm font-medium text-gray-700">Resultado</p>
+        <div className="rounded-control border border-line bg-surface p-4">
+          <p className="mb-3 text-sm font-medium text-ink">Resultado</p>
           <dl className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <dt className="text-gray-500">Stock</dt>
-              <dd className="font-semibold text-gray-900">
+              <dt className="text-muted">Stock</dt>
+              <dd className="font-semibold text-ink">
                 {formatQty(stock)} → {quantity !== '' ? formatQty(Math.max(stockAfter, 0)) : '—'} {unit}
               </dd>
             </div>
             <div>
-              <dt className="text-gray-500">Costo promedio</dt>
-              <dd className="font-semibold text-gray-900">
+              <dt className="text-muted">Costo promedio</dt>
+              <dd className="font-semibold text-ink">
                 {formatMoney(product.costPerUnit)}
                 {isPurchase && cost > 0 && qty > 0 && ` → ${formatMoney(costAfter ?? 0)}`}
               </dd>
             </div>
           </dl>
           {isPurchase && cost > 0 && qty > 0 && (
-            <p className="mt-3 text-xs text-gray-500">
+            <p className="mt-3 text-xs text-muted">
               Total de la compra: {formatMoney(qty * cost)}. Las recetas que usan este producto se recalculan con el
               nuevo costo.
             </p>

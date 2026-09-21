@@ -2,22 +2,19 @@ import { ReactNode, SelectHTMLAttributes } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 export function inputClass(error?: string) {
-  return `w-full rounded-lg border px-3 py-2 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-transparent focus:ring-2 focus:ring-blue-600 ${
-    error ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'
+  return `w-full rounded-control border bg-page px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/20 ${
+    error ? 'border-bad' : 'border-line'
   }`;
 }
 
 // Select sin la apariencia nativa del navegador: misma altura y padding que los inputs.
 export function Select({ className = '', children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative min-w-0 ${className}`}>
       <select {...props} className={`${inputClass()} cursor-pointer appearance-none pr-9`}>
         {children}
       </select>
-      <ChevronDown
-        size={16}
-        className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-      />
+      <ChevronDown size={16} className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted" />
     </div>
   );
 }
@@ -26,42 +23,63 @@ interface FieldProps {
   label: string;
   htmlFor: string;
   error?: string;
+  hint?: string;
   children: ReactNode;
 }
 
-export function Field({ label, htmlFor, error, children }: FieldProps) {
+export function Field({ label, htmlFor, error, hint, children }: FieldProps) {
   return (
-    <div>
-      <label htmlFor={htmlFor} className="mb-1 block text-sm font-medium text-gray-700">
+    <div className="min-w-0">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-medium text-ink">
         {label}
       </label>
       {children}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {hint && !error && <p className="mt-1 text-xs text-muted">{hint}</p>}
+      {error && <p className="mt-1 text-xs font-medium text-bad">{error}</p>}
     </div>
   );
 }
 
-const STAT_TONES = {
-  blue: 'bg-blue-50 border-blue-200',
-  green: 'bg-green-50 border-green-200',
-  purple: 'bg-purple-50 border-purple-200',
-  yellow: 'bg-yellow-50 border-yellow-200',
-  red: 'bg-red-50 border-red-200',
-};
-
-interface StatBoxProps {
+interface SegmentedProps<T extends string> {
   label: string;
-  value: ReactNode;
-  hint?: string;
-  tone: keyof typeof STAT_TONES;
+  value: T;
+  options: { value: T; label: string; icon?: ReactNode }[];
+  onChange: (value: T) => void;
+  className?: string;
 }
 
-export function StatBox({ label, value, hint, tone }: StatBoxProps) {
+// Control segmentado: la opción activa va rellena de acento.
+export function Segmented<T extends string>({ label, value, options, onChange, className = '' }: SegmentedProps<T>) {
   return (
-    <div className={`rounded-lg border p-4 ${STAT_TONES[tone]}`}>
-      <p className="text-sm text-gray-600">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
-      {hint && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
+    <div role="radiogroup" aria-label={label} className={`flex rounded-control border border-line bg-page p-1 ${className}`}>
+      {options.map((option) => {
+        const active = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(option.value)}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-chip px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+              active ? 'bg-accent text-on-accent' : 'text-muted hover:text-ink'
+            }`}
+          >
+            {option.icon}
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Nota informativa en dorado suave (datos que conviene saber antes de guardar).
+export function InfoNote({ icon, children }: { icon?: ReactNode; children: ReactNode }) {
+  return (
+    <div className="flex gap-2.5 rounded-control border border-gold/25 bg-gold/[0.08] p-3 text-[13px] text-ink">
+      {icon && <span className="mt-0.5 shrink-0 text-gold">{icon}</span>}
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }

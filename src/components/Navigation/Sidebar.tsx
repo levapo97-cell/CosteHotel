@@ -2,109 +2,123 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import {
+  BarChart3,
+  BookOpen,
+  Calendar,
+  ChefHat,
+  CreditCard,
+  DollarSign,
+  LayoutDashboard,
+  LogOut,
+  LucideIcon,
+  Package,
+  Settings,
+  Users,
+  UtensilsCrossed,
+} from 'lucide-react';
 import { ROLE_MENU_MAP } from '@/types';
-import * as Icons from 'lucide-react';
-import { useState } from 'react';
+import { useAuthStore } from '@/store/authStore';
+import { isLowStock } from '@/lib/inventory';
+import { useWorkspaceData } from '@/components/Workspace/useWorkspaceData';
+import { buttonClass } from '@/components/ui/Button';
 
-export function Sidebar() {
+// Mapa explícito en vez de `import * as Icons`, que metía todos los iconos de lucide al bundle.
+const ICONS: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  DollarSign,
+  Calendar,
+  BookOpen,
+  CreditCard,
+  UtensilsCrossed,
+  Package,
+  Users,
+  BarChart3,
+  Settings,
+};
+
+const ROLE_LABELS = { admin: 'Administrador', chef: 'Chef', manager: 'Gerente' };
+
+interface SidebarProps {
+  open: boolean;
+  onNavigate: () => void;
+}
+
+export function Sidebar({ open, onNavigate }: SidebarProps) {
   const user = useAuthStore((state) => state.user);
-  const [isOpen, setIsOpen] = useState(true);
+  const logout = useAuthStore((state) => state.logout);
   const pathname = usePathname();
+  const { products } = useWorkspaceData();
 
   if (!user) return null;
 
-  const menuItems = ROLE_MENU_MAP[user.role];
-
-  const getIcon = (iconName: string) => {
-    const IconComponent = Icons[iconName as keyof typeof Icons] as React.ComponentType<{ size: number; className?: string }>;
-    if (!IconComponent) return null;
-    return <IconComponent size={20} />;
-  };
+  const lowStockCount = products.filter(isLowStock).length;
 
   return (
     <aside
-      className={`${
-        isOpen ? 'w-72' : 'w-24'
-      } bg-white transition-all duration-300 ease-in-out fixed h-screen left-0 top-0 overflow-y-auto border-r border-gray-200 shadow-sm`}
+      className={`fixed inset-y-0 left-0 z-40 flex w-[250px] flex-col border-r border-line bg-surface transition-[translate,visibility] duration-200 lg:visible lg:translate-x-0 ${
+        open ? 'visible translate-x-0' : 'invisible -translate-x-full'
+      }`}
     >
-      <div className="flex flex-col h-full">
-        {/* Header */}
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            {isOpen && (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
-                  🍽️
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-gray-900">Restaurant</h1>
-                  <p className="text-xs text-gray-500">Management</p>
-                </div>
-              </div>
-            )}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-600 hover:text-gray-900"
-            >
-              <Icons.ChevronLeft size={20} className={`transition-transform ${!isOpen ? 'rotate-180' : ''}`} />
-            </button>
-          </div>
+      <div className="flex items-center gap-3 px-5 py-6">
+        <div className="flex size-[38px] shrink-0 items-center justify-center rounded-control bg-accent text-on-accent">
+          <ChefHat size={20} />
         </div>
+        <div className="min-w-0">
+          <p className="font-display text-lg leading-tight font-semibold text-ink">Appitit</p>
+          <p className="text-[11px] font-medium tracking-[0.12em] text-muted uppercase">Hotel &amp; Bar</p>
+        </div>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-6 space-y-1">
-          {isOpen && <p className="text-xs font-semibold text-gray-500 px-4 mb-4 uppercase tracking-wider">Navegación</p>}
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
+      <nav aria-label="Principal" className="flex-1 overflow-y-auto px-3 pb-4">
+        <p className="px-3 pb-2 text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">Operación</p>
+        <ul className="space-y-0.5">
+          {ROLE_MENU_MAP[user.role].map((item) => {
+            const Icon = ICONS[item.icon] ?? LayoutDashboard;
+            const active = pathname === item.href;
+            const badge = item.id === 'inventario' && lowStockCount > 0 ? lowStockCount : null;
             return (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-600 font-semibold'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-                title={isOpen ? '' : item.label}
-              >
-                <span className={`flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
-                  {getIcon(item.icon)}
-                </span>
-
-                {isOpen && (
-                  <>
-                    <span className="text-sm">{item.label}</span>
-                    {isActive && <div className="ml-auto w-1.5 h-1.5 bg-blue-600 rounded-full" />}
-                  </>
-                )}
-              </Link>
+              <li key={item.id}>
+                <Link
+                  href={item.href}
+                  onClick={onNavigate}
+                  aria-current={active ? 'page' : undefined}
+                  className={`relative flex items-center gap-3 rounded-control px-3 py-2.5 text-sm transition-colors ${
+                    active ? 'bg-accent/10 font-semibold text-accent-text' : 'text-muted hover:bg-ink/[0.04] hover:text-ink'
+                  }`}
+                >
+                  {active && <span aria-hidden className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-accent" />}
+                  <Icon size={18} className="shrink-0" />
+                  <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                  {badge && (
+                    <span
+                      className="rounded-chip bg-bad px-1.5 py-0.5 text-[11px] leading-none font-semibold text-on-accent"
+                      aria-label={`${badge} productos bajo mínimo`}
+                    >
+                      {badge}
+                    </span>
+                  )}
+                </Link>
+              </li>
             );
           })}
-        </nav>
+        </ul>
+      </nav>
 
-        {/* Footer - User Info */}
-        <div className={`p-4 border-t border-gray-100 bg-gray-50 ${!isOpen && 'flex flex-col items-center'}`}>
-          <div className={`flex items-center gap-3 mb-4 ${isOpen ? 'flex-row' : 'flex-col'}`}>
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 text-white font-bold text-lg">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-            {isOpen && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
-                <p className="text-xs text-gray-500 capitalize">{user.role}</p>
-              </div>
-            )}
+      <div className="border-t border-line p-4">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-control bg-gold font-semibold text-on-accent">
+            {user.name.charAt(0).toUpperCase()}
           </div>
-
-          <button
-            onClick={() => useAuthStore.setState({ user: null, isAuthenticated: false })}
-            className={`w-full px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 hover:border-gray-300 flex items-center justify-center gap-2 ${!isOpen && 'p-2'}`}
-          >
-            <Icons.LogOut size={16} />
-            {isOpen && 'Cerrar sesión'}
-          </button>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-ink">{user.name}</p>
+            <p className="text-xs text-muted">{ROLE_LABELS[user.role]}</p>
+          </div>
         </div>
+        <button type="button" onClick={logout} className={buttonClass('neutral', 'w-full')}>
+          <LogOut size={16} />
+          Cerrar sesión
+        </button>
       </div>
     </aside>
   );

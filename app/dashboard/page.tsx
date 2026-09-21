@@ -1,119 +1,92 @@
 'use client';
 
+import { CalendarDays, Check } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { MainLayout } from '@/components/Layout/MainLayout';
+import { ProtectedPage } from '@/components/Layout/ProtectedPage';
 import { PageHeader } from '@/components/Layout/PageHeader';
-import { StatCard } from '@/components/ui/StatCard';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { Badge } from '@/components/ui/Badge';
+import { Card, CardTitle, KpiCard, KpiGrid } from '@/components/ui/Card';
+
+const ROLE_LABELS = { admin: 'Administrador', chef: 'Chef', manager: 'Gerente' };
+
+const UPCOMING_EVENTS = [
+  { name: 'Boda García - Día 1', detail: 'Mañana 10:00 · 150 personas' },
+  { name: 'Reunión Corporativa ABC', detail: '22 sept · 10:00 · 45 personas' },
+  { name: 'Quinceañera López', detail: '24 sept · 14:00 · 120 personas' },
+];
 
 export default function Dashboard() {
   const user = useAuthStore((state) => state.user);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!user) {
-      router.push('/');
-    }
-  }, [user, router]);
-
-  if (!user) {
-    return null;
-  }
 
   return (
-    <MainLayout>
-      <div className="space-y-8">
-        <PageHeader
-          title={`Bienvenido, ${user.name}`}
-          description={`Rol: ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}`}
-        />
+    <ProtectedPage>
+      {user && (
+        <>
+          <PageHeader title={`Bienvenido, ${user.name}`} description={`Rol: ${ROLE_LABELS[user.role]}`} />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            label="Eventos Activos"
-            value="12"
-            subtext="+2 esta semana"
-            icon="📅"
-          />
-          <StatCard
-            label="Reservas Pendientes"
-            value="28"
-            subtext="5 próximas 24h"
-            icon="🪑"
-          />
-          <StatCard
-            label="Ingresos Totales"
-            value="$12,450"
-            subtext="+12% vs mes pasado"
-            icon="💰"
-          />
-          <StatCard
-            label="Tasa Ocupación"
-            value="85%"
-            subtext="Operativo"
-            icon="📊"
-          />
-        </div>
+          <div className="space-y-8">
+            <KpiGrid>
+              <KpiCard label="Eventos activos" value="12" note="+2 esta semana" />
+              <KpiCard label="Reservas pendientes" value="28" note="5 en las próximas 24 h" />
+              <KpiCard label="Ingresos totales" value="$12,450" note="+12% vs. mes pasado" />
+              <KpiCard label="Tasa de ocupación" value="85%" note="Operativo" />
+            </KpiGrid>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Eventos Próximos</h2>
-            <div className="space-y-3">
-              <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="w-3 h-3 rounded-full bg-blue-600 mt-1.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">Boda García - Día 1</p>
-                  <p className="text-sm text-gray-600">Mañana 10:00 AM • 150 personas</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="w-3 h-3 rounded-full bg-blue-600 mt-1.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">Reunión Corporativa ABC</p>
-                  <p className="text-sm text-gray-600">22 Sept • 10:00 AM • 45 personas</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="w-3 h-3 rounded-full bg-blue-600 mt-1.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">Quinceañera López</p>
-                  <p className="text-sm text-gray-600">24 Sept • 14:00 PM • 120 personas</p>
-                </div>
-              </div>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(320px,100%),1fr))] gap-4">
+              <Card className="p-6">
+                <CardTitle>Eventos próximos</CardTitle>
+                <ul className="mt-4 divide-y divide-line">
+                  {UPCOMING_EVENTS.map((event) => (
+                    <li key={event.name} className="flex items-start gap-3 py-3">
+                      <CalendarDays size={18} className="mt-0.5 shrink-0 text-accent-text" />
+                      <div className="min-w-0">
+                        <p className="font-medium text-ink">{event.name}</p>
+                        <p className="text-[13px] text-muted">{event.detail}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+
+              <Card className="p-6">
+                <CardTitle>Perfil</CardTitle>
+                <dl className="mt-4 space-y-4">
+                  <div>
+                    <dt className="text-[11px] font-semibold tracking-wide text-muted uppercase">Nombre</dt>
+                    <dd className="mt-1 font-medium text-ink">{user.name}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] font-semibold tracking-wide text-muted uppercase">Email</dt>
+                    <dd className="mt-1 font-medium break-all text-ink">{user.email}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] font-semibold tracking-wide text-muted uppercase">Rol</dt>
+                    <dd className="mt-1">
+                      <Badge tone="gold">{ROLE_LABELS[user.role]}</Badge>
+                    </dd>
+                  </div>
+                </dl>
+              </Card>
             </div>
-          </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Información del Perfil</h2>
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nombre</p>
-                <p className="text-gray-900 font-medium mt-1">{user.name}</p>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</p>
-                <p className="text-gray-900 font-medium mt-1">{user.email}</p>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Rol</p>
-                <div className="mt-1 inline-block px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full border border-blue-200">
-                  {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                </div>
-              </div>
-            </div>
+            <Card className="p-6">
+              <CardTitle>Para comenzar</CardTitle>
+              <ul className="mt-4 space-y-2">
+                {[
+                  'Usa el menú lateral para entrar a las secciones de tu rol.',
+                  'Arriba eliges el hotel y el área (restaurante o bar) con la que trabajas.',
+                  'Para cambiar de rol, cierra sesión y elige otro usuario.',
+                ].map((tip) => (
+                  <li key={tip} className="flex gap-2 text-ink">
+                    <Check size={16} className="mt-0.5 shrink-0 text-ok" />
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </Card>
           </div>
-        </div>
-
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="font-semibold text-blue-900 mb-2">💡 Comenzar</h3>
-          <ul className="text-sm text-blue-800 space-y-2">
-            <li>✓ Explora el menú lateral para acceder a todas las funciones disponibles para tu rol</li>
-            <li>✓ Cada sección tiene herramientas específicas según tus permisos</li>
-            <li>✓ Puedes cambiar de rol desde la página de inicio</li>
-          </ul>
-        </div>
-      </div>
-    </MainLayout>
+        </>
+      )}
+    </ProtectedPage>
   );
 }

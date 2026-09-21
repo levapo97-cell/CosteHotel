@@ -4,7 +4,8 @@ import { FormEvent, useId, useState } from 'react';
 import { Ingredient, UnitType } from '@/types';
 import { UNIT_LABELS, formatMoney } from '@/lib/costing';
 import { formatQty } from '@/lib/inventory';
-import { Field, Select, inputClass } from '@/components/ui/Form';
+import { Info } from 'lucide-react';
+import { Field, InfoNote, Select, inputClass } from '@/components/ui/Form';
 
 export interface ProductValues {
   name: string;
@@ -67,24 +68,24 @@ export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
       </Field>
 
       {initial ? (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
+        <div className="rounded-control border border-line bg-surface p-4 text-sm">
           <dl className="grid grid-cols-3 gap-3">
             <div>
-              <dt className="text-gray-500">Unidad</dt>
-              <dd className="font-medium text-gray-900">{unit}</dd>
+              <dt className="text-muted">Unidad</dt>
+              <dd className="font-medium text-ink">{unit}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">Costo promedio</dt>
-              <dd className="font-medium text-gray-900">{formatMoney(initial.costPerUnit)}</dd>
+              <dt className="text-muted">Costo promedio</dt>
+              <dd className="font-medium text-ink">{formatMoney(initial.costPerUnit)}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">Stock</dt>
-              <dd className="font-medium text-gray-900">
+              <dt className="text-muted">Stock</dt>
+              <dd className="font-medium text-ink">
                 {formatQty(initial.currentStock)} {unit}
               </dd>
             </div>
           </dl>
-          <p className="mt-3 text-xs text-gray-500">
+          <p className="mt-3 text-xs text-muted">
             El costo se actualiza al registrar compras y el stock con los movimientos.
           </p>
         </div>
@@ -130,10 +131,19 @@ export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
               />
             </Field>
           </div>
+          <InfoNote icon={<Info size={16} />}>
+            El stock inicial se registra como <strong className="font-semibold">ajuste</strong> en el kardex, con el
+            costo que indiques.
+          </InfoNote>
         </>
       )}
 
-      <Field label={`Stock mínimo (${unit})`} htmlFor={`${id}-min`} error={errors.minStock}>
+      <Field
+        label={`Stock mínimo (${unit})`}
+        htmlFor={`${id}-min`}
+        error={errors.minStock}
+        hint="Se muestra una alerta cuando el stock llega a este valor."
+      >
         <input
           id={`${id}-min`}
           type="number"
@@ -146,7 +156,6 @@ export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
           aria-invalid={!!errors.minStock}
           className={inputClass(errors.minStock)}
         />
-        <p className="mt-1 text-xs text-gray-500">Se muestra una alerta cuando el stock llega a este valor.</p>
       </Field>
     </form>
   );
