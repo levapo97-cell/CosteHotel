@@ -2,22 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  BarChart3,
-  BookOpen,
-  Calendar,
-  ChefHat,
-  CreditCard,
-  DollarSign,
-  LayoutDashboard,
-  LogOut,
-  LucideIcon,
-  Package,
-  Settings,
-  Users,
-  UtensilsCrossed,
-} from 'lucide-react';
-import { ROLE_MENU_MAP } from '@/types';
+import { ChefHat, DollarSign, LogOut, LucideIcon, Package, UtensilsCrossed } from 'lucide-react';
+import { MENU } from '@/types';
 import { useAuthStore } from '@/store/authStore';
 import { isLowStock } from '@/lib/inventory';
 import { useWorkspaceData } from '@/components/Workspace/useWorkspaceData';
@@ -25,19 +11,10 @@ import { buttonClass } from '@/components/ui/Button';
 
 // Mapa explícito en vez de `import * as Icons`, que metía todos los iconos de lucide al bundle.
 const ICONS: Record<string, LucideIcon> = {
-  LayoutDashboard,
-  DollarSign,
-  Calendar,
-  BookOpen,
-  CreditCard,
-  UtensilsCrossed,
   Package,
-  Users,
-  BarChart3,
-  Settings,
+  UtensilsCrossed,
+  DollarSign,
 };
-
-const ROLE_LABELS = { admin: 'Administrador', chef: 'Chef', manager: 'Gerente' };
 
 interface SidebarProps {
   open: boolean;
@@ -73,8 +50,8 @@ export function Sidebar({ open, onNavigate }: SidebarProps) {
       <nav aria-label="Principal" className="flex-1 overflow-y-auto px-3 pb-4">
         <p className="px-3 pb-2 text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">Operación</p>
         <ul className="space-y-0.5">
-          {ROLE_MENU_MAP[user.role].map((item) => {
-            const Icon = ICONS[item.icon] ?? LayoutDashboard;
+          {MENU.map((item) => {
+            const Icon = ICONS[item.icon] ?? Package;
             const active = pathname === item.href;
             const badge = item.id === 'inventario' && lowStockCount > 0 ? lowStockCount : null;
             return (
@@ -112,7 +89,7 @@ export function Sidebar({ open, onNavigate }: SidebarProps) {
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-ink">{user.name}</p>
-            <p className="text-xs text-muted">{ROLE_LABELS[user.role]}</p>
+            <p className="text-xs text-muted">Sesión activa</p>
           </div>
         </div>
         <button type="button" onClick={logout} className={buttonClass('neutral', 'w-full')}>

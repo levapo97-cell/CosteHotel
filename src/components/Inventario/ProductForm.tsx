@@ -1,11 +1,12 @@
 'use client';
 
 import { FormEvent, useId, useState } from 'react';
-import { Ingredient, UnitType } from '@/types';
-import { UNIT_LABELS, formatMoney } from '@/lib/costing';
+import { Allergen, Ingredient, UnitType } from '@/types';
+import { UNIT_DESCRIPTIONS, UNIT_LABELS, formatMoney } from '@/lib/costing';
 import { formatQty } from '@/lib/inventory';
 import { Info } from 'lucide-react';
 import { Field, InfoNote, Select, inputClass } from '@/components/ui/Form';
+import { AllergenPicker } from '@/components/ui/AllergenPicker';
 
 export interface ProductValues {
   name: string;
@@ -13,6 +14,7 @@ export interface ProductValues {
   costPerUnit: number;
   initialStock: number;
   minStock: number;
+  allergens: Allergen[];
 }
 
 type Errors = Partial<Record<'name' | 'costPerUnit' | 'initialStock' | 'minStock', string>>;
@@ -31,6 +33,7 @@ export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
   const [costPerUnit, setCostPerUnit] = useState('');
   const [initialStock, setInitialStock] = useState('');
   const [minStock, setMinStock] = useState(initial?.minStock.toString() ?? '');
+  const [allergens, setAllergens] = useState<Allergen[]>(initial?.allergens ?? []);
   const [submitted, setSubmitted] = useState(false);
 
   const cost = Number(costPerUnit);
@@ -49,7 +52,7 @@ export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
     event.preventDefault();
     setSubmitted(true);
     if (Object.keys(validation).length > 0) return;
-    onSubmit({ name: name.trim(), unitType, costPerUnit: cost, initialStock: stock, minStock: min });
+    onSubmit({ name: name.trim(), unitType, costPerUnit: cost, initialStock: stock, minStock: min, allergens });
   };
 
   const unit = UNIT_LABELS[unitType];
@@ -93,11 +96,11 @@ export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
         <>
           <Field label="Unidad de medida" htmlFor={`${id}-unit`}>
             <Select id={`${id}-unit`} value={unitType} onChange={(e) => setUnitType(e.target.value as UnitType)}>
-              <option value="kg">Kilogramo (kg)</option>
-              <option value="g">Gramo (g)</option>
-              <option value="l">Litro (L)</option>
-              <option value="ml">Mililitro (ml)</option>
-              <option value="unit">Unidad</option>
+              {(['kg', 'g', 'lb', 'oz', 'l', 'ml', 'cl', 'unit'] as UnitType[]).map((u) => (
+                <option key={u} value={u}>
+                  {UNIT_DESCRIPTIONS[u]}
+                </option>
+              ))}
             </Select>
           </Field>
 
@@ -157,6 +160,14 @@ export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
           className={inputClass(errors.minStock)}
         />
       </Field>
+
+      <div>
+        <p className="mb-1.5 text-[13px] font-medium text-ink">Alérgenos</p>
+        <p className="mb-3 text-xs text-muted">
+          Marca los alérgenos que aporta este producto. Las recetas que lo usen los heredan automáticamente.
+        </p>
+        <AllergenPicker selected={allergens} onChange={setAllergens} />
+      </div>
     </form>
   );
 }

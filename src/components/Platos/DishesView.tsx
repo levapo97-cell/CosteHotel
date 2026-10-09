@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Dish } from '@/types';
 import { useInventoryStore } from '@/store/inventoryStore';
@@ -10,14 +11,12 @@ import { Button } from '@/components/ui/Button';
 import { KpiCard, KpiGrid } from '@/components/ui/Card';
 import { formatPercent } from '@/components/ui/format';
 import { marginTone } from '@/components/ui/tone';
-import { useDrawerState } from '@/components/ui/useDrawerState';
 import { DishCards } from './DishCards';
-import { DishDrawer } from './DishDrawer';
 
 export function DishesView() {
-  const { copy, products, recipes } = useWorkspaceData();
+  const router = useRouter();
+  const { copy, products, recipes, recipeCatalog, hotelName } = useWorkspaceData();
   const deleteDish = useInventoryStore((state) => state.deleteDish);
-  const drawer = useDrawerState<Dish>();
 
   const avgMargin = recipes.length
     ? recipes.reduce((sum, r) => sum + r.analysis.marginPercentage, 0) / recipes.length
@@ -35,7 +34,7 @@ export function DishesView() {
         description="Recetas con sus productos y cantidades. El costo se actualiza solo con cada compra registrada."
         action={
           <Button
-            onClick={() => drawer.show()}
+            onClick={() => router.push('/platos/nuevo')}
             disabled={products.length === 0}
             title={products.length === 0 ? 'Primero agrega productos en Inventario' : undefined}
           >
@@ -64,12 +63,14 @@ export function DishesView() {
         <DishCards
           recipes={recipes}
           emptyText={`Aún no hay ${copy.recipes.toLowerCase()} en esta área.`}
-          onEdit={(dish) => drawer.show(dish)}
+          onEdit={(dish) => router.push(`/platos/${dish.id}`)}
           onDelete={handleDelete}
+          products={products}
+          catalog={recipeCatalog}
+          areaLabel={copy.label}
+          hotelName={hotelName}
         />
       </div>
-
-      <DishDrawer drawer={drawer} products={products} />
     </>
   );
 }

@@ -10,9 +10,14 @@ export function useWorkspaceData() {
 
   const products = ingredients.filter((ing) => ing.hotelId === hotelId && ing.area === area);
   const productIds = new Set(products.map((p) => p.id));
-  const recipes = dishes
-    .filter((dish) => dish.hotelId === hotelId && dish.area === area)
-    .map((dish) => ({ dish, analysis: analyzeDish(dish, products) }));
+
+  // Catálogo completo del área (incluye subrecetas internas como salsas).
+  const recipeCatalog = dishes.filter((dish) => dish.hotelId === hotelId && dish.area === area);
+
+  // La carta solo muestra recetas vendibles; las subrecetas quedan ocultas.
+  const recipes = recipeCatalog
+    .filter((dish) => !dish.isSubrecipe)
+    .map((dish) => ({ dish, analysis: analyzeDish(dish, products, recipeCatalog) }));
 
   return {
     hotelId,
@@ -21,8 +26,9 @@ export function useWorkspaceData() {
     copy: AREA_COPY[area],
     products,
     recipes,
+    recipeCatalog,
     movements: movements.filter((mov) => productIds.has(mov.ingredientId)),
     usageCount: (productId: string) =>
-      recipes.filter(({ dish }) => dish.ingredients.some((item) => item.ingredientId === productId)).length,
+      recipeCatalog.filter((dish) => dish.ingredients.some((item) => item.ingredientId === productId)).length,
   };
 }

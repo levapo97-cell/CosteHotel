@@ -11,19 +11,23 @@ import { Card, CardTitle } from '@/components/ui/Card';
 import { formatPercent } from '@/components/ui/format';
 import { TONE_TEXT, marginTone } from '@/components/ui/tone';
 import { latestCostChange } from './costChanges';
+import { ChannelTable } from './ChannelComparison';
+import { PriceHistoryPanel } from './PriceHistoryPanel';
 
 const AREAS: Area[] = ['restaurant', 'bar'];
 
 export function ProfitabilityView() {
-  const { hotelId, copy, products, recipes, movements } = useWorkspaceData();
+  const { hotelId, copy, products, recipes, recipeCatalog, movements } = useWorkspaceData();
   const { ingredients, dishes } = useInventoryStore();
 
-  // Margen promedio de cada área del hotel activo, con su propio costo de productos.
+  // Margen promedio de cada área del hotel activo, con su propio costo de productos
+  // y su propio catálogo (incluye subrecetas para costearlas).
   const byArea = AREAS.map((area) => {
     const areaProducts = ingredients.filter((ing) => ing.hotelId === hotelId && ing.area === area);
-    const analyses = dishes
-      .filter((dish) => dish.hotelId === hotelId && dish.area === area)
-      .map((dish) => analyzeDish(dish, areaProducts));
+    const areaCatalog = dishes.filter((dish) => dish.hotelId === hotelId && dish.area === area);
+    const analyses = areaCatalog
+      .filter((dish) => !dish.isSubrecipe)
+      .map((dish) => analyzeDish(dish, areaProducts, areaCatalog));
     const prices = analyses.map((a) => a.sellingPrice);
     return {
       area,
@@ -43,7 +47,7 @@ export function ProfitabilityView() {
     <div className="grid grid-cols-[repeat(auto-fit,minmax(min(360px,100%),1fr))] gap-4">
       <Card className="p-6">
         <CardTitle>Margen promedio por área</CardTitle>
-        <p className="mt-1 text-[13px] text-muted">Promedio simple del margen de cada receta sobre su precio de carta.</p>
+        <p className="mt-1 text-[13px] text-muted">Promedio simple del margen bruto de cada receta sobre el precio sin IVA del canal principal.</p>
 
         <div className="mt-6 space-y-6">
           {byArea.map(({ area, count, average, minPrice, maxPrice }) => {
@@ -95,7 +99,7 @@ export function ProfitabilityView() {
                     <div className="min-w-0">
                       <p className="truncate font-medium text-ink">{dish.name}</p>
                       <p className="text-xs text-muted">
-                        Costo {formatMoney(analysis.totalCost)} · precio {formatMoney(analysis.sellingPrice)}
+                        Coste por porción {formatMoney(analysis.costPerServing)} · PVP {formatMoney(analysis.sellingPrice)}
                       </p>
                     </div>
                     <Badge tone={marginTone(analysis.marginPercentage)}>{formatPercent(analysis.marginPercentage)}</Badge>
@@ -113,6 +117,20 @@ export function ProfitabilityView() {
           </p>
         )}
       </Card>
+
+      <Card className="p-6 lg:col-span-2">
+        <CardTitle>Comparativa por canal</CardTitle>
+        <p className="mt-1 text-[13px] text-muted">
+          Cómo cambia la rentabilidad del mismo plato según el canal de venta, su precio y sus comisiones. Totales de{' '}
+          {copy.label.toLowerCase()}.
+        </p>
+
+        <div className="mt-5">
+          <ChannelTable analyses={recipes.map(({ analysis }) => analysis)} />
+        </div>
+      </Card>
+
+      <PriceHistoryPanel products={products} movements={movements} recipes={recipes} catalog={recipeCatalog} />
     </div>
   );
 }

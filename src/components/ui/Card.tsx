@@ -6,8 +6,9 @@ interface CardProps {
   className?: string;
 }
 
+// Tarjeta plana minimalista: borde fino, sin sombra. La separación la da el espacio.
 export function Card({ children, className = '' }: CardProps) {
-  return <div className={`rounded-card border border-line bg-page shadow-card ${className}`}>{children}</div>;
+  return <div className={`rounded-card border border-line bg-page ${className}`}>{children}</div>;
 }
 
 export function CardTitle({ children }: { children: ReactNode }) {
@@ -21,12 +22,16 @@ interface KpiCardProps {
   tone?: Tone;
 }
 
+// KPI minimalista: etiqueta discreta, cifra grande que lleva el color de estado,
+// nota breve. Sin adornos: el dato es el protagonista.
 export function KpiCard({ label, value, note, tone }: KpiCardProps) {
   return (
     <Card className="p-5">
-      <p className="text-xs font-medium tracking-wide text-muted uppercase">{label}</p>
-      <p className={`mt-2 text-[28px] leading-tight font-semibold ${tone ? TONE_TEXT[tone] : 'text-ink'}`}>{value}</p>
-      {note && <p className="mt-1 text-xs text-muted">{note}</p>}
+      <p className="text-[10px] font-semibold tracking-[0.1em] text-muted uppercase">{label}</p>
+      <p className={`mt-3 text-[28px] leading-none font-semibold tracking-[-0.02em] tabular-nums ${tone ? TONE_TEXT[tone] : 'text-ink'}`}>
+        {value}
+      </p>
+      {note && <p className="mt-2.5 text-xs leading-snug text-muted">{note}</p>}
     </Card>
   );
 }

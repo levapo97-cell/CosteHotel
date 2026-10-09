@@ -13,8 +13,10 @@ const VARIANTS: Record<Variant, string> = {
   'icon-danger': 'rounded-chip p-2 text-muted hover:bg-bad/10 hover:text-bad disabled:opacity-35 disabled:hover:bg-transparent disabled:hover:text-muted',
 };
 
+// Feedback de pulsación (emil-design-eng): scale(0.97) en :active, propiedades
+// explícitas (nunca transition-all) y sin transform con movimiento reducido.
 export function buttonClass(variant: Variant = 'primary', extra = '') {
-  return `inline-flex items-center justify-center gap-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed ${VARIANTS[variant]} ${extra}`;
+  return `inline-flex items-center justify-center gap-2 text-sm transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:active:scale-100 motion-reduce:transition-none motion-reduce:active:scale-100 ${VARIANTS[variant]} ${extra}`;
 }
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

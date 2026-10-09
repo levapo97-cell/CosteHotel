@@ -42,3 +42,8 @@ next-env.d.ts
 
 # graphify
 graphify-out/
+
+# claude code / skills (herramientas locales)
+.claude/
+.agents/
+skills-lock.json

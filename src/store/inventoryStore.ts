@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Area, Dish, Ingredient, MovementType, StockMovement, UnitType } from '@/types';
+import { Allergen, Area, Dish, Ingredient, MovementType, StockMovement, UnitType } from '@/types';
 
 const round = (value: number, decimals = 3) => Math.round(value * 10 ** decimals) / 10 ** decimals;
 const today = () => new Date().toISOString().split('T')[0];
@@ -11,6 +11,10 @@ const SEED: Seed[] = [
   ['r2', 'h1', 'restaurant', 'Arroz Blanco', 'kg', 2.2, 45, 10],
   ['r3', 'h1', 'restaurant', 'Tomate Fresco', 'kg', 1.8, 4, 6],
   ['r4', 'h1', 'restaurant', 'Aceite de Oliva', 'l', 12, 8, 2],
+  ['r8', 'h1', 'restaurant', 'Pan de hamburguesa brioche', 'unit', 0.4, 60, 20],
+  ['r9', 'h1', 'restaurant', 'Carne molida de res 80/20', 'kg', 10, 25, 8],
+  ['r10', 'h1', 'restaurant', 'Queso cheddar en lonchas', 'kg', 12, 12, 4],
+  ['r11', 'h1', 'restaurant', 'Harina de trigo', 'lb', 0.9, 50, 10],
   ['b1', 'h1', 'bar', 'Ron Blanco', 'l', 18, 6, 2],
   ['b2', 'h1', 'bar', 'Limón', 'kg', 2.5, 3, 1],
   ['b3', 'h1', 'bar', 'Azúcar', 'kg', 1.2, 5, 1],
@@ -24,8 +28,16 @@ const SEED: Seed[] = [
   ['b8', 'h2', 'bar', 'Jarabe de Goma', 'l', 5, 1.5, 0.5],
 ];
 
+// Alérgenos de demostración por producto (los demás no declaran ninguno).
+const SEED_ALLERGENS: Record<string, Allergen[]> = {
+  r8: ['gluten'], // Pan de hamburguesa brioche
+  r10: ['lacteos'], // Queso cheddar
+  r11: ['gluten'], // Harina de trigo
+};
+
 const DEMO_INGREDIENTS: Ingredient[] = SEED.map(([id, hotelId, area, name, unitType, costPerUnit, currentStock, minStock]) => ({
   id, hotelId, area, name, unitType, costPerUnit, currentStock, minStock, lastUpdated: '2026-09-15',
+  allergens: SEED_ALLERGENS[id],
 }));
 
 const DEMO_MOVEMENTS: StockMovement[] = DEMO_INGREDIENTS.map((ing) => ({
@@ -58,6 +70,39 @@ const DEMO_DISHES: Dish[] = [
   {
     id: 'd3', hotelId: 'h1', area: 'restaurant', name: 'Arroz con Pollo', sellingPrice: 22,
     ingredients: [{ ingredientId: 'r1', quantityNeeded: 0.35 }, { ingredientId: 'r2', quantityNeeded: 0.4 }],
+  },
+  {
+    id: 'd8', hotelId: 'h1', area: 'restaurant', name: 'Hamburguesa clásica',
+    code: 'PRI001', category: 'Principales',
+    description: 'Receta de referencia: merma en la carne, salsa de la casa y empaque incluidos.',
+    sellingPrice: 14, taxRate: 8.25, targetFoodCostPercent: 30,
+    yieldQuantity: 1, yieldUnit: 'unit', safetyMarginPercent: 10,
+    ingredients: [
+      { ingredientId: 'r8', quantityNeeded: 1, wastePercent: 0 },
+      { ingredientId: 'r9', quantityNeeded: 0.18, wastePercent: 10 },
+      { ingredientId: 'r10', quantityNeeded: 0.04, wastePercent: 0 },
+    ],
+    subrecipes: [{ recipeId: 'd9', quantityNeeded: 0.05 }],
+    packaging: [
+      { id: 'p1', name: 'Bolsa para llevar', quantity: 1, unit: 'unit', unitCost: 0.15 },
+      { id: 'p2', name: 'Caja para hamburguesa', quantity: 1, unit: 'unit', unitCost: 0.35 },
+      { id: 'p3', name: 'Ketchup monodosis', quantity: 2, unit: 'unit', unitCost: 0.12 },
+      { id: 'p4', name: 'Servilletas Kraft 20 cm', quantity: 2, unit: 'unit', unitCost: 0.075 },
+    ],
+    channels: [
+      { channelId: 'local', priceWithTax: 14 },
+      { channelId: 'uber', priceWithTax: 14 },
+    ],
+  },
+  {
+    id: 'd9', hotelId: 'h1', area: 'restaurant', name: 'Salsa de la casa',
+    sellingPrice: 0, taxRate: 8.25, targetFoodCostPercent: 30,
+    yieldQuantity: 1, yieldUnit: 'kg', safetyMarginPercent: 0,
+    ingredients: [
+      { ingredientId: 'r3', quantityNeeded: 0.5, wastePercent: 0 },
+      { ingredientId: 'r4', quantityNeeded: 0.02, wastePercent: 0 },
+    ],
+    isSubrecipe: true,
   },
   {
     id: 'd4', hotelId: 'h1', area: 'bar', name: 'Mojito', sellingPrice: 9,
@@ -98,6 +143,7 @@ export interface NewProductInput {
   costPerUnit: number;
   initialStock: number;
   minStock: number;
+  allergens?: Allergen[];
 }
 
 export interface MovementInput {
@@ -115,7 +161,7 @@ interface InventoryState {
   movements: StockMovement[];
   dishes: Dish[];
   addProduct: (input: NewProductInput, userName: string) => void;
-  updateProduct: (id: string, changes: Pick<Ingredient, 'name' | 'minStock'>) => void;
+  updateProduct: (id: string, changes: Pick<Ingredient, 'name' | 'minStock' | 'allergens'>) => void;
   deleteProduct: (id: string) => void;
   registerMovement: (input: MovementInput, userName: string) => void;
   saveDish: (input: DishInput, id?: string) => void;
@@ -210,5 +256,11 @@ export const useInventoryStore = create<InventoryState>((set) => ({
         : [...state.dishes, { ...input, id: crypto.randomUUID() }],
     })),
 
-  deleteDish: (id) => set((state) => ({ dishes: state.dishes.filter((dish) => dish.id !== id) })),
+  // Una receta usada como subreceta de otra no se borra: dejaría costes incompletos.
+  deleteDish: (id) =>
+    set((state) =>
+      state.dishes.some((dish) => (dish.subrecipes ?? []).some((sub) => sub.recipeId === id))
+        ? state
+        : { dishes: state.dishes.filter((dish) => dish.id !== id) }
+    ),
 }));

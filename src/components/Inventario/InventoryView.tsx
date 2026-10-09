@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowLeftRight, Plus } from 'lucide-react';
 import { Ingredient, MovementType } from '@/types';
 import { useInventoryStore } from '@/store/inventoryStore';
@@ -12,17 +13,15 @@ import { Button } from '@/components/ui/Button';
 import { KpiCard, KpiGrid } from '@/components/ui/Card';
 import { Select } from '@/components/ui/Form';
 import { Tabs } from '@/components/ui/Tabs';
-import { useDrawerState } from '@/components/ui/useDrawerState';
 import { ProductsTable } from './ProductsTable';
 import { MovementsTable } from './MovementsTable';
-import { ProductDrawer, ProductDrawerPayload } from './ProductDrawer';
 
 type Tab = 'stock' | 'movements';
 
 export function InventoryView() {
+  const router = useRouter();
   const { products, movements, usageCount } = useWorkspaceData();
   const deleteProduct = useInventoryStore((state) => state.deleteProduct);
-  const drawer = useDrawerState<ProductDrawerPayload>();
 
   const [tab, setTab] = useState<Tab>('stock');
   const [typeFilter, setTypeFilter] = useState<MovementType | ''>('');
@@ -50,11 +49,15 @@ export function InventoryView() {
         description="Stock, compras y mermas de cada área. El stock y el costo solo cambian con movimientos registrados."
         action={
           <>
-            <Button variant="outline" onClick={() => drawer.show({ kind: 'movement' })} disabled={products.length === 0}>
+            <Button
+              variant="outline"
+              onClick={() => router.push('/inventario/movimientos/nuevo')}
+              disabled={products.length === 0}
+            >
               <ArrowLeftRight size={18} />
               Registrar movimiento
             </Button>
-            <Button onClick={() => drawer.show({ kind: 'product' })}>
+            <Button onClick={() => router.push('/inventario/productos/nuevo')}>
               <Plus size={18} />
               Nuevo producto
             </Button>
@@ -95,8 +98,8 @@ export function InventoryView() {
               products={products}
               movements={movements}
               usageCount={usageCount}
-              onMove={(product) => drawer.show({ kind: 'movement', product })}
-              onEdit={(product) => drawer.show({ kind: 'product', product })}
+              onMove={(product) => router.push(`/inventario/movimientos/nuevo?producto=${product.id}`)}
+              onEdit={(product) => router.push(`/inventario/productos/${product.id}`)}
               onDelete={handleDelete}
             />
           ) : (
@@ -137,8 +140,6 @@ export function InventoryView() {
           )}
         </div>
       </div>
-
-      <ProductDrawer drawer={drawer} products={products} />
     </>
   );
 }

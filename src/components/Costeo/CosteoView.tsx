@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Dish, Ingredient } from '@/types';
 import { useInventoryStore } from '@/store/inventoryStore';
@@ -9,25 +10,22 @@ import { isLowStock } from '@/lib/inventory';
 import { useWorkspaceData } from '@/components/Workspace/useWorkspaceData';
 import { PageHeader } from '@/components/Layout/PageHeader';
 import { ProductsTable } from '@/components/Inventario/ProductsTable';
-import { ProductDrawer, ProductDrawerPayload } from '@/components/Inventario/ProductDrawer';
 import { DishCards } from '@/components/Platos/DishCards';
-import { DishDrawer } from '@/components/Platos/DishDrawer';
 import { Button } from '@/components/ui/Button';
 import { KpiCard, KpiGrid } from '@/components/ui/Card';
 import { Tabs } from '@/components/ui/Tabs';
 import { formatPercent } from '@/components/ui/format';
 import { marginTone } from '@/components/ui/tone';
-import { useDrawerState } from '@/components/ui/useDrawerState';
+import { AttentionPanel } from './AttentionPanel';
 import { ProfitabilityView } from './ProfitabilityView';
 
 type Tab = 'products' | 'recipes' | 'profitability';
 
 export function CosteoView() {
-  const { copy, products, recipes, movements, usageCount } = useWorkspaceData();
+  const router = useRouter();
+  const { copy, products, recipes, recipeCatalog, movements, usageCount, hotelName } = useWorkspaceData();
   const { deleteProduct, deleteDish } = useInventoryStore();
   const [tab, setTab] = useState<Tab>('products');
-  const productDrawer = useDrawerState<ProductDrawerPayload>();
-  const dishDrawer = useDrawerState<Dish>();
 
   const inventoryValue = products.reduce((sum, p) => sum + p.costPerUnit * p.currentStock, 0);
   const lowCount = products.filter(isLowStock).length;
@@ -46,12 +44,12 @@ export function CosteoView() {
 
   const action =
     tab === 'products' ? (
-      <Button onClick={() => productDrawer.show({ kind: 'product' })}>
+      <Button onClick={() => router.push('/inventario/productos/nuevo')}>
         <Plus size={18} />
         Nuevo producto
       </Button>
     ) : tab === 'recipes' ? (
-      <Button onClick={() => dishDrawer.show()} disabled={products.length === 0}>
+      <Button onClick={() => router.push('/platos/nuevo')} disabled={products.length === 0}>
         <Plus size={18} />
         {copy.newRecipe}
       </Button>
@@ -66,6 +64,8 @@ export function CosteoView() {
       />
 
       <div className="space-y-8">
+        <AttentionPanel />
+
         <KpiGrid>
           <KpiCard label="Valor del inventario" value={formatMoney(inventoryValue)} note={`${products.length} productos`} />
           <KpiCard
@@ -104,8 +104,8 @@ export function CosteoView() {
               products={products}
               movements={movements}
               usageCount={usageCount}
-              onMove={(product) => productDrawer.show({ kind: 'movement', product })}
-              onEdit={(product) => productDrawer.show({ kind: 'product', product })}
+              onMove={(product) => router.push(`/inventario/movimientos/nuevo?producto=${product.id}`)}
+              onEdit={(product) => router.push(`/inventario/productos/${product.id}`)}
               onDelete={handleDeleteProduct}
             />
           )}
@@ -113,16 +113,17 @@ export function CosteoView() {
             <DishCards
               recipes={recipes}
               emptyText={`Aún no hay ${copy.recipes.toLowerCase()} en esta área.`}
-              onEdit={(dish) => dishDrawer.show(dish)}
+              onEdit={(dish) => router.push(`/platos/${dish.id}`)}
               onDelete={handleDeleteDish}
+              products={products}
+              catalog={recipeCatalog}
+              areaLabel={copy.label}
+              hotelName={hotelName}
             />
           )}
           {tab === 'profitability' && <ProfitabilityView />}
         </div>
       </div>
-
-      <ProductDrawer drawer={productDrawer} products={products} />
-      <DishDrawer drawer={dishDrawer} products={products} />
     </>
   );
 }

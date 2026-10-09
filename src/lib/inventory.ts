@@ -30,11 +30,11 @@ export const AREA_COPY: Record<Area, Record<'label' | 'recipe' | 'recipes' | 'of
   },
 };
 
-export const MOVEMENT_TYPES: Record<MovementType, { label: string; hint: string; className: string }> = {
-  purchase: { label: 'Compra', hint: 'Entra mercadería y actualiza el costo promedio.', className: 'bg-green-100 text-green-800' },
-  consumption: { label: 'Consumo', hint: 'Salida por uso en cocina o barra.', className: 'bg-blue-100 text-blue-800' },
-  waste: { label: 'Merma', hint: 'Producto vencido, dañado o desperdiciado.', className: 'bg-red-100 text-red-800' },
-  adjustment: { label: 'Ajuste', hint: 'Corrige el stock con un conteo físico.', className: 'bg-gray-100 text-gray-700' },
+export const MOVEMENT_TYPES: Record<MovementType, { label: string; hint: string }> = {
+  purchase: { label: 'Compra', hint: 'Entra mercadería y actualiza el costo promedio.' },
+  consumption: { label: 'Consumo', hint: 'Salida por uso en cocina o barra.' },
+  waste: { label: 'Merma', hint: 'Producto vencido, dañado o desperdiciado.' },
+  adjustment: { label: 'Ajuste', hint: 'Corrige el stock con un conteo físico.' },
 };
 
 const dateFormatter = new Intl.DateTimeFormat('es', { dateStyle: 'short', timeStyle: 'short' });

@@ -6,7 +6,7 @@ import { Ingredient, StockMovement } from '@/types';
 import { UNIT_LABELS, formatMoney } from '@/lib/costing';
 import { formatQty, isLowStock } from '@/lib/inventory';
 import { lastCostChange } from '@/components/Costeo/costChanges';
-import { ProgressBar } from '@/components/ui/Badge';
+import { Badge, ProgressBar } from '@/components/ui/Badge';
 import { buttonClass } from '@/components/ui/Button';
 import { inputClass } from '@/components/ui/Form';
 import { formatDay, formatPercent } from '@/components/ui/format';
@@ -120,7 +120,7 @@ export function ProductsTable({ products, movements, usageCount, onMove, onEdit,
             // La barra llega al 100% con el doble del mínimo: debajo de la mitad ya está en crítico.
             const fill = product.minStock > 0 ? product.currentStock / (product.minStock * 2) : 1;
             return (
-              <div role="row" key={product.id} className={`${GRID} border-b border-line py-4 last:border-b-0`}>
+              <div role="row" key={product.id} className={`${GRID} border-b border-line py-3 last:border-b-0 hover:bg-surface/60`}>
                 <div role="cell" className="min-w-0">
                   <p className="truncate font-medium text-ink">{product.name}</p>
                   <p className="text-[11px] text-muted">Actualizado {formatDay(product.lastUpdated)}</p>
@@ -137,8 +137,11 @@ export function ProductsTable({ products, movements, usageCount, onMove, onEdit,
                   )}
                 </div>
                 <div role="cell" className="min-w-0 space-y-1.5">
-                  <p className={`font-semibold ${TONE_TEXT[tone]}`}>
-                    {formatQty(product.currentStock)} {unit}
+                  <p className="flex items-center gap-2">
+                    <span className={`font-semibold ${TONE_TEXT[tone]}`}>
+                      {formatQty(product.currentStock)} {unit}
+                    </span>
+                    {isLowStock(product) && <Badge tone="bad">Bajo</Badge>}
                   </p>
                   <ProgressBar value={fill} tone={tone} label={`Stock de ${product.name} respecto al mínimo`} />
                   <p className="text-[11px] text-muted">
