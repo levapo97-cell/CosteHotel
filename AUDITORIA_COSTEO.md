@@ -10,6 +10,21 @@ frontend, tal como pide el análisis.** El motor de costeo vive en
 
 Leyenda: ✅ cumplido · 🟡 parcial · ❌ falta
 
+## Entregado en esta iteración (2026-10-09) — recomendaciones del chef
+
+- ✅ **Coste de referencia + desviación + "aceptar coste"** (`Ingredient.referenceCost`,
+  `referenceDeviation` en `costChanges.ts` con test). La edición del producto muestra la
+  desviación vs. el promedio ponderado actual y permite aceptar el coste nuevo; el panel
+  "Necesita tu atención" avisa de subidas sobre la referencia sin duplicar la alerta de la
+  última compra.
+- ✅ **Proveedor + categoría** del producto (`Ingredient.supplier`, `category`) en el
+  formulario y visibles en la tabla de inventario.
+- ✅ **Formato de compra** (caja/paquete → $/unidad) como ayuda opcional en el movimiento de compra.
+- ✅ **Pasos de elaboración + foto del plato** (`Dish.preparationSteps`, `imageUrl`) en el
+  formulario, en la ficha técnica (lista numerada + imagen) y miniatura en la tarjeta.
+- 🟡 **Carta imprimible por canal** — pendiente (incremental; la ficha ya lista precio y
+  margen por canal).
+
 ## Entregado en esta iteración (2026-09-23)
 
 - ✅ **Historial de precios + coste por periodo (§3, §35)** — `src/lib/priceHistory.ts`

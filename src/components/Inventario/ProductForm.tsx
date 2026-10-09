@@ -4,8 +4,11 @@ import { FormEvent, useId, useState } from 'react';
 import { Allergen, Ingredient, UnitType } from '@/types';
 import { UNIT_DESCRIPTIONS, UNIT_LABELS, formatMoney } from '@/lib/costing';
 import { formatQty } from '@/lib/inventory';
-import { Info } from 'lucide-react';
+import { referenceDeviation } from '@/components/Costeo/costChanges';
+import { formatPercent } from '@/components/ui/format';
+import { Check, Info } from 'lucide-react';
 import { Field, InfoNote, Select, inputClass } from '@/components/ui/Form';
+import { buttonClass } from '@/components/ui/Button';
 import { AllergenPicker } from '@/components/ui/AllergenPicker';
 
 export interface ProductValues {
@@ -15,6 +18,8 @@ export interface ProductValues {
   initialStock: number;
   minStock: number;
   allergens: Allergen[];
+  category: string;
+  supplier: string;
 }
 
 type Errors = Partial<Record<'name' | 'costPerUnit' | 'initialStock' | 'minStock', string>>;
@@ -23,10 +28,12 @@ interface ProductFormProps {
   formId: string;
   initial?: Ingredient;
   onSubmit: (values: ProductValues) => void;
+  // Fija el coste de referencia al promedio ponderado actual (solo en edición).
+  onAcceptReferenceCost?: () => void;
 }
 
 // Al editar solo cambian nombre y mínimo: el costo lo mueven las compras y el stock los movimientos.
-export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
+export function ProductForm({ formId, initial, onSubmit, onAcceptReferenceCost }: ProductFormProps) {
   const id = useId();
   const [name, setName] = useState(initial?.name ?? '');
   const [unitType, setUnitType] = useState<UnitType>(initial?.unitType ?? 'kg');
@@ -34,6 +41,8 @@ export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
   const [initialStock, setInitialStock] = useState('');
   const [minStock, setMinStock] = useState(initial?.minStock.toString() ?? '');
   const [allergens, setAllergens] = useState<Allergen[]>(initial?.allergens ?? []);
+  const [category, setCategory] = useState(initial?.category ?? '');
+  const [supplier, setSupplier] = useState(initial?.supplier ?? '');
   const [submitted, setSubmitted] = useState(false);
 
   const cost = Number(costPerUnit);
@@ -52,10 +61,20 @@ export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
     event.preventDefault();
     setSubmitted(true);
     if (Object.keys(validation).length > 0) return;
-    onSubmit({ name: name.trim(), unitType, costPerUnit: cost, initialStock: stock, minStock: min, allergens });
+    onSubmit({
+      name: name.trim(),
+      unitType,
+      costPerUnit: cost,
+      initialStock: stock,
+      minStock: min,
+      allergens,
+      category: category.trim(),
+      supplier: supplier.trim(),
+    });
   };
 
   const unit = UNIT_LABELS[unitType];
+  const deviation = initial ? referenceDeviation(initial) : null;
 
   return (
     <form id={formId} onSubmit={handleSubmit} noValidate className="space-y-5">
@@ -69,6 +88,27 @@ export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
           className={inputClass(errors.name)}
         />
       </Field>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Categoría (opcional)" htmlFor={`${id}-category`} hint="Agrupa el inventario: Carnes, Lácteos, Licores…">
+          <input
+            id={`${id}-category`}
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="Ej: Carnes"
+            className={inputClass()}
+          />
+        </Field>
+        <Field label="Proveedor (opcional)" htmlFor={`${id}-supplier`}>
+          <input
+            id={`${id}-supplier`}
+            value={supplier}
+            onChange={(e) => setSupplier(e.target.value)}
+            placeholder="Ej: Distribuidora La Ceiba"
+            className={inputClass()}
+          />
+        </Field>
+      </div>
 
       {initial ? (
         <div className="rounded-control border border-line bg-surface p-4 text-sm">
@@ -91,6 +131,27 @@ export function ProductForm({ formId, initial, onSubmit }: ProductFormProps) {
           <p className="mt-3 text-xs text-muted">
             El costo se actualiza al registrar compras y el stock con los movimientos.
           </p>
+
+          {/* Coste de referencia: el "normal" aceptado. La desviación avisa de subidas de proveedor. */}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
+            <div>
+              <dt className="text-muted">Coste de referencia</dt>
+              <dd className="font-medium text-ink">
+                {initial.referenceCost != null ? formatMoney(initial.referenceCost) : '—'}
+                {deviation && Math.abs(deviation.percent) >= 0.05 && (
+                  <span className={`ml-2 text-xs font-semibold ${deviation.percent > 0 ? 'text-bad' : 'text-ok'}`}>
+                    {deviation.percent > 0 ? '▲' : '▼'} {formatPercent(Math.abs(deviation.percent))} vs. actual
+                  </span>
+                )}
+              </dd>
+            </div>
+            {onAcceptReferenceCost && deviation && Math.abs(deviation.percent) >= 0.05 && (
+              <button type="button" onClick={onAcceptReferenceCost} className={buttonClass('outline', 'px-3 py-2')}>
+                <Check size={15} />
+                Aceptar coste
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         <>

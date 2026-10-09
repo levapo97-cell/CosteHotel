@@ -35,9 +35,20 @@ const SEED_ALLERGENS: Record<string, Allergen[]> = {
   r11: ['gluten'], // Harina de trigo
 };
 
+// Categoría y proveedor de demostración (los demás quedan sin asignar).
+const SEED_META: Record<string, { category?: string; supplier?: string }> = {
+  r1: { category: 'Carnes', supplier: 'Distribuidora La Ceiba' },
+  r9: { category: 'Carnes', supplier: 'Distribuidora La Ceiba' },
+  r10: { category: 'Lácteos', supplier: 'Lácteos del Caribe' },
+  r2: { category: 'Abarrotes', supplier: 'Mayoreo Roatán' },
+  b1: { category: 'Licores', supplier: 'Licorera Insular' },
+};
+
 const DEMO_INGREDIENTS: Ingredient[] = SEED.map(([id, hotelId, area, name, unitType, costPerUnit, currentStock, minStock]) => ({
   id, hotelId, area, name, unitType, costPerUnit, currentStock, minStock, lastUpdated: '2026-09-15',
   allergens: SEED_ALLERGENS[id],
+  referenceCost: costPerUnit, // el coste inicial es la referencia hasta que el usuario acepte uno nuevo
+  ...SEED_META[id],
 }));
 
 const DEMO_MOVEMENTS: StockMovement[] = DEMO_INGREDIENTS.map((ing) => ({
@@ -83,6 +94,12 @@ const DEMO_DISHES: Dish[] = [
       { ingredientId: 'r10', quantityNeeded: 0.04, wastePercent: 0 },
     ],
     subrecipes: [{ recipeId: 'd9', quantityNeeded: 0.05 }],
+    preparationSteps: [
+      'Forma la hamburguesa de 180 g y sazona por ambas caras.',
+      'Sella a la plancha 3 min por lado; funde el cheddar sobre la carne.',
+      'Tuesta el pan brioche y unta la salsa de la casa en la base.',
+      'Monta, empaca en la caja y cierra en bolsa para llevar.',
+    ],
     packaging: [
       { id: 'p1', name: 'Bolsa para llevar', quantity: 1, unit: 'unit', unitCost: 0.15 },
       { id: 'p2', name: 'Caja para hamburguesa', quantity: 1, unit: 'unit', unitCost: 0.35 },
@@ -144,6 +161,8 @@ export interface NewProductInput {
   initialStock: number;
   minStock: number;
   allergens?: Allergen[];
+  category?: string;
+  supplier?: string;
 }
 
 export interface MovementInput {
@@ -161,8 +180,10 @@ interface InventoryState {
   movements: StockMovement[];
   dishes: Dish[];
   addProduct: (input: NewProductInput, userName: string) => void;
-  updateProduct: (id: string, changes: Pick<Ingredient, 'name' | 'minStock' | 'allergens'>) => void;
+  updateProduct: (id: string, changes: Pick<Ingredient, 'name' | 'minStock' | 'allergens' | 'category' | 'supplier'>) => void;
   deleteProduct: (id: string) => void;
+  // Fija el coste de referencia al promedio ponderado actual ("aceptar" la subida).
+  acceptReferenceCost: (id: string) => void;
   registerMovement: (input: MovementInput, userName: string) => void;
   saveDish: (input: DishInput, id?: string) => void;
   deleteDish: (id: string) => void;
@@ -176,7 +197,13 @@ export const useInventoryStore = create<InventoryState>((set) => ({
 
   addProduct: ({ initialStock, ...input }, userName) =>
     set((state) => {
-      const ingredient: Ingredient = { ...input, id: crypto.randomUUID(), currentStock: initialStock, lastUpdated: today() };
+      const ingredient: Ingredient = {
+        ...input,
+        id: crypto.randomUUID(),
+        currentStock: initialStock,
+        lastUpdated: today(),
+        referenceCost: input.costPerUnit,
+      };
       const movement: StockMovement = {
         id: crypto.randomUUID(),
         ingredientId: ingredient.id,
@@ -206,6 +233,13 @@ export const useInventoryStore = create<InventoryState>((set) => ({
             movements: state.movements.filter((mov) => mov.ingredientId !== id),
           }
     ),
+
+  acceptReferenceCost: (id) =>
+    set((state) => ({
+      ingredients: state.ingredients.map((ing) =>
+        ing.id === id ? { ...ing, referenceCost: ing.costPerUnit } : ing
+      ),
+    })),
 
   registerMovement: ({ ingredientId, type, quantity, unitCost, note }, userName) =>
     set((state) => {

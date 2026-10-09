@@ -123,6 +123,11 @@ export function ProductsTable({ products, movements, usageCount, onMove, onEdit,
               <div role="row" key={product.id} className={`${GRID} border-b border-line py-3 last:border-b-0 hover:bg-surface/60`}>
                 <div role="cell" className="min-w-0">
                   <p className="truncate font-medium text-ink">{product.name}</p>
+                  {(product.category || product.supplier) && (
+                    <p className="truncate text-[11px] text-muted">
+                      {[product.category, product.supplier].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
                   <p className="text-[11px] text-muted">Actualizado {formatDay(product.lastUpdated)}</p>
                 </div>
                 <div role="cell" className="text-right">

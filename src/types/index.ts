@@ -54,6 +54,12 @@ export interface Ingredient {
   minStock: number;
   lastUpdated: string;
   allergens?: Allergen[]; // alérgenos que aporta este producto
+  category?: string; // grupo/familia para ordenar el inventario (ej. Carnes, Lácteos)
+  supplier?: string; // proveedor habitual
+  // Coste de referencia: el costo que se considera "normal". Sirve para medir la
+  // desviación del promedio ponderado actual (subidas de proveedor) y se actualiza
+  // cuando el usuario "acepta" el coste nuevo. Por defecto, el costo inicial.
+  referenceCost?: number;
 }
 
 // compra y ajuste pueden subir el stock; consumo y merma lo bajan.
@@ -140,6 +146,10 @@ export interface Dish {
   allergens?: Allergen[];
   // Receta interna que no se vende (ej. una salsa) y no aparece en la carta.
   isSubrecipe?: boolean;
+  // Pasos de elaboración (uno por elemento) para la ficha técnica de cocina.
+  preparationSteps?: string[];
+  // URL de la foto del plato (la app es solo frontend: se referencia por URL).
+  imageUrl?: string;
 }
 
 export interface ChannelAnalysis {

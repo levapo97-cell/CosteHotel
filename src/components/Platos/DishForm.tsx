@@ -95,6 +95,8 @@ export function DishForm({ formId, initial, ingredients, recipes, area, onSubmit
   const [code, setCode] = useState(initial?.code ?? '');
   const [category, setCategory] = useState(initial?.category ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
+  const [steps, setSteps] = useState((initial?.preparationSteps ?? []).join('\n'));
+  const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? '');
   const [sellingPrice, setSellingPrice] = useState(initial?.sellingPrice.toString() ?? '');
   const [taxRate, setTaxRate] = useState((initial?.taxRate ?? DEFAULT_TAX_RATE).toString());
   const [targetFoodCost, setTargetFoodCost] = useState((initial?.targetFoodCostPercent ?? DEFAULT_TARGET_FOOD_COST).toString());
@@ -248,6 +250,11 @@ export function DishForm({ formId, initial, ingredients, recipes, area, onSubmit
       packaging: packagingItems,
       channels: channelItems,
       allergens: manualAllergens,
+      preparationSteps: steps
+        .split('\n')
+        .map((step) => step.trim())
+        .filter(Boolean),
+      imageUrl: imageUrl.trim() || undefined,
     });
   };
 
@@ -612,6 +619,42 @@ export function DishForm({ formId, initial, ingredients, recipes, area, onSubmit
           correspondan directamente a esta elaboración.
         </p>
         <AllergenPicker selected={manualAllergens} onChange={setManualAllergens} autoSelected={autoDetectedAllergens} />
+      </section>
+
+      <section className="space-y-4">
+        <h3 className="text-xs font-semibold tracking-wide text-muted uppercase">Elaboración y foto</h3>
+        <Field label="Pasos de elaboración (opcional)" htmlFor={`${id}-steps`} hint="Un paso por línea. Aparecen numerados en la ficha técnica.">
+          <textarea
+            id={`${id}-steps`}
+            value={steps}
+            onChange={(e) => setSteps(e.target.value)}
+            placeholder={'Sella la carne 3 min por lado\nTuesta el pan y unta la salsa\nMonta y empaca'}
+            rows={4}
+            className={inputClass()}
+          />
+        </Field>
+        <Field label="Foto del plato (URL, opcional)" htmlFor={`${id}-image`}>
+          <input
+            id={`${id}-image`}
+            type="url"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://…"
+            className={inputClass()}
+          />
+        </Field>
+        {imageUrl.trim() && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            key={imageUrl}
+            src={imageUrl}
+            alt={`Vista previa de ${name || 'el plato'}`}
+            className="h-36 w-full rounded-control border border-line object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        )}
       </section>
 
       <section className="space-y-4">

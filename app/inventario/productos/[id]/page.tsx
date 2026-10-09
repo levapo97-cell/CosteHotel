@@ -15,6 +15,7 @@ export default function EditProductPage() {
   const { id } = useParams<{ id: string }>();
   const product = useInventoryStore((state) => state.ingredients.find((ing) => ing.id === id));
   const updateProduct = useInventoryStore((state) => state.updateProduct);
+  const acceptReferenceCost = useInventoryStore((state) => state.acceptReferenceCost);
 
   return (
     <ProtectedPage>
@@ -29,8 +30,15 @@ export default function EditProductPage() {
           <ProductForm
             formId={FORM_ID}
             initial={product}
+            onAcceptReferenceCost={() => acceptReferenceCost(product.id)}
             onSubmit={(values) => {
-              updateProduct(product.id, { name: values.name, minStock: values.minStock, allergens: values.allergens });
+              updateProduct(product.id, {
+                name: values.name,
+                minStock: values.minStock,
+                allergens: values.allergens,
+                category: values.category || undefined,
+                supplier: values.supplier || undefined,
+              });
               router.push('/inventario');
             }}
           />

@@ -44,7 +44,18 @@ export function DishCards({ recipes, emptyText, onEdit, onDelete, products, cata
         const count = dish.ingredients.length;
         const allergens = canShowFicha ? effectiveAllergens(dish, products!, catalog!) : [];
         return (
-          <Card key={dish.id} className="flex flex-col gap-4 p-5">
+          <Card key={dish.id} className="flex flex-col gap-4 overflow-hidden p-5">
+            {dish.imageUrl && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={dish.imageUrl}
+                alt={dish.name}
+                className="-mx-5 -mt-5 h-36 w-[calc(100%+2.5rem)] max-w-none object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            )}
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="font-display text-card-title font-semibold text-pretty text-ink">{dish.name}</h3>

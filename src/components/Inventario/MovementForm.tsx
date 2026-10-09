@@ -24,6 +24,18 @@ export function MovementForm({ formId, products, initialProductId, onSubmit }: M
   const [unitCost, setUnitCost] = useState('');
   const [note, setNote] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  // Formato de compra (opcional): se compra por caja/paquete y se normaliza a $/unidad.
+  const [packSize, setPackSize] = useState('');
+  const [packPrice, setPackPrice] = useState('');
+
+  // Al cambiar el formato de compra, recalcula el costo por unidad = precio / contenido.
+  const applyPackFormat = (size: string, total: string) => {
+    setPackSize(size);
+    setPackPrice(total);
+    const s = Number(size);
+    const t = Number(total);
+    if (s > 0 && t > 0) setUnitCost((t / s).toString());
+  };
 
   const product = products.find((p) => p.id === productId);
   const unit = product ? UNIT_LABELS[product.unitType] : '';
@@ -126,6 +138,48 @@ export function MovementForm({ formId, products, initialProductId, onSubmit }: M
           </Field>
         )}
       </div>
+
+      {isPurchase && (
+        <details className="rounded-control border border-line bg-page">
+          <summary className="cursor-pointer px-3 py-2.5 text-[13px] font-medium text-ink select-none">
+            ¿Compraste por caja o paquete? Calcular costo por {unit || 'unidad'}
+          </summary>
+          <div className="space-y-2 border-t border-line p-3">
+            <div className="grid grid-cols-2 gap-4">
+              <Field label={`Contenido (${unit || 'unidades'} por formato)`} htmlFor={`${id}-pack-size`}>
+                <input
+                  id={`${id}-pack-size`}
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={packSize}
+                  onChange={(e) => applyPackFormat(e.target.value, packPrice)}
+                  placeholder="Ej: 100"
+                  className={inputClass()}
+                />
+              </Field>
+              <Field label="Precio del formato ($)" htmlFor={`${id}-pack-price`}>
+                <input
+                  id={`${id}-pack-price`}
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={packPrice}
+                  onChange={(e) => applyPackFormat(packSize, e.target.value)}
+                  placeholder="Ej: 40.00"
+                  className={inputClass()}
+                />
+              </Field>
+            </div>
+            <p className="text-xs text-muted">
+              Ej: una caja de 100 {unit || 'pz'} a $40 → {formatMoney(40 / 100)} por {unit || 'pz'}. El costo por{' '}
+              {unit || 'unidad'} de arriba se completa solo; puedes ajustarlo.
+            </p>
+          </div>
+        </details>
+      )}
 
       <Field label="Nota (opcional)" htmlFor={`${id}-note`}>
         <input

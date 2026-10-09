@@ -29,7 +29,16 @@ export default function NewProductPage() {
         <ProductForm
           formId={FORM_ID}
           onSubmit={(values) => {
-            addProduct({ ...values, hotelId, area }, userName);
+            addProduct(
+              {
+                ...values,
+                hotelId,
+                area,
+                category: values.category || undefined,
+                supplier: values.supplier || undefined,
+              },
+              userName
+            );
             router.push('/inventario');
           }}
         />

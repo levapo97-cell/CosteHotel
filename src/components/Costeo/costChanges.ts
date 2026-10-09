@@ -34,6 +34,16 @@ export function lastCostChange(product: Ingredient, movements: StockMovement[]):
   };
 }
 
+// Desviación del promedio ponderado actual frente al coste de referencia aceptado.
+// Positiva = el producto está más caro que su referencia (subida de proveedor).
+// Devuelve null si no hay referencia con qué comparar.
+export function referenceDeviation(product: Ingredient): { percent: number; amount: number } | null {
+  const reference = product.referenceCost;
+  if (!reference || reference <= 0) return null;
+  const amount = product.costPerUnit - reference;
+  return { amount, percent: (amount / reference) * 100 };
+}
+
 export function latestCostChange(products: Ingredient[], movements: StockMovement[]): CostChange | null {
   return products
     .map((product) => lastCostChange(product, movements))

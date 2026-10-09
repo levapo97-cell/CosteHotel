@@ -128,6 +128,18 @@ export function FichaTecnica({ dish, analysis, products, catalog, areaLabel, hot
           </div>
         </div>
 
+        {dish.imageUrl && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={dish.imageUrl}
+            alt={dish.name}
+            className="mb-6 h-48 w-full rounded-control border border-line object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        )}
+
         <section className="mb-6 grid grid-cols-2 gap-x-6 gap-y-2.5 sm:grid-cols-4">
           {info.map(([label, value]) => (
             <div key={label}>
@@ -141,6 +153,19 @@ export function FichaTecnica({ dish, analysis, products, catalog, areaLabel, hot
           <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted uppercase">Alérgenos</h3>
           <AllergenChips allergens={allergens} />
         </section>
+
+        {dish.preparationSteps && dish.preparationSteps.length > 0 && (
+          <section className="mb-6">
+            <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted uppercase">Elaboración</h3>
+            <ol className="list-decimal space-y-1.5 pl-5 text-[13px] text-ink marker:text-muted marker:tabular-nums">
+              {dish.preparationSteps.map((step, index) => (
+                <li key={index} className="pl-1">
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
 
         <section className="mb-6">
           <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted uppercase">Detalle del costeo</h3>

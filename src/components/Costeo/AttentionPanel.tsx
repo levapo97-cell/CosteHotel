@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, ArrowRight, Check, CircleAlert, Info } from 'lucide-react';
 import { MARGIN_REVIEW, UNIT_LABELS, formatMoney } from '@/lib/costing';
 import { formatQty, isLowStock } from '@/lib/inventory';
-import { lastCostChange } from '@/components/Costeo/costChanges';
+import { lastCostChange, referenceDeviation } from '@/components/Costeo/costChanges';
 import { useWorkspaceData } from '@/components/Workspace/useWorkspaceData';
 import { formatPercent } from '@/components/ui/format';
 import { Card } from '@/components/ui/Card';
@@ -58,13 +58,31 @@ export function AttentionPanel() {
     }
   }
 
+  const flaggedCost = new Set<string>();
   for (const product of products) {
     const change = lastCostChange(product, movements);
     if (change && change.percent >= COST_SPIKE_PERCENT) {
+      flaggedCost.add(product.id);
       alerts.push({
         id: `cost-${product.id}`,
         severity: 'warn',
         text: `${product.name}: el costo subió ${formatPercent(change.percent)} en la última compra`,
+        actionLabel: 'Ver producto',
+        href: `/inventario/productos/${product.id}`,
+      });
+    }
+  }
+
+  // Desviación persistente frente al coste de referencia aceptado (subida de proveedor
+  // que aún no se ha "aceptado"). No se repite si ya avisamos de la última compra.
+  for (const product of products) {
+    if (flaggedCost.has(product.id)) continue;
+    const dev = referenceDeviation(product);
+    if (dev && dev.percent >= COST_SPIKE_PERCENT) {
+      alerts.push({
+        id: `ref-${product.id}`,
+        severity: 'warn',
+        text: `${product.name}: ${formatPercent(dev.percent)} sobre el coste de referencia — revisa y acepta o renegocia`,
         actionLabel: 'Ver producto',
         href: `/inventario/productos/${product.id}`,
       });
